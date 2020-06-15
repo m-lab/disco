@@ -17,10 +17,11 @@ func Test_Client(t *testing.T) {
 		Retries:   1,
 	}
 
-	client := Client(goSNMP)
+	client := New(goSNMP)
 	var i interface{} = client
 	_, ok := i.(SNMP)
 	if !ok {
-		t.Error("Expected return value of Client() to implement interface SNMP.")
+		t.Error("Expected return value of New() to implement interface SNMP.")
 	}
 }
+

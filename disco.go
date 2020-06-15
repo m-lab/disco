@@ -4,10 +4,10 @@ import (
 	"context"
 	"flag"
 	"log"
-	"os"
 	"time"
 
 	"github.com/go-co-op/gocron"
+	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
 	"github.com/nkinkade/disco-go/config"
@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	community           = os.Getenv("DISCO_COMMUNITY")
+	fCommunity          = flag.String("community", "", "The SNMP community string for the switch.")
+	fHostname           = flag.String("hostname", "", "The FQDN of the node.")
 	fListenAddress      = flag.String("listen-address", ":8888", "Address to listen on for telemetry.")
 	fMetricsFile        = flag.String("metrics", "", "Path to YAML file defining metrics to scrape.")
 	fWriteInterval      = flag.Uint64("write-interval", 300, "Interval in seconds to write out JSON files.")
@@ -28,29 +29,31 @@ var (
 
 func main() {
 	flag.Parse()
+	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not parse env args")
 
-	if len(community) <= 0 {
-		log.Fatalf("Environment variable not set: DISCO_COMMUNITY")
+	if len(*fCommunity) <= 0 {
+		log.Fatal("SNMP community string must be passed as arg or env variable.")
 	}
 
-	hostname, err := os.Hostname()
-	rtx.Must(err, "Failed to determine the hostname of the system")
+	if len(*fHostname) <= 0 {
+		log.Fatal("Node's FQDN must be passed as an arg or env variable.")
+	}
 
 	goSNMP := &gosnmp.GoSNMP{
 		Target:    *fTarget,
 		Port:      uint16(161),
-		Community: community,
+		Community: *fCommunity,
 		Version:   gosnmp.Version2c,
-		Timeout:   time.Duration(2) * time.Second,
+		Timeout:   time.Duration(5) * time.Second,
 		Retries:   1,
 	}
-	err = goSNMP.Connect()
+	err := goSNMP.Connect()
 	rtx.Must(err, "Failed to connect to the SNMP server")
 
 	config, err := config.New(*fMetricsFile)
 	rtx.Must(err, "Could not create new metrics configuration")
-	client := snmp.Client(goSNMP)
-	metrics := metrics.New(client, config, *fTarget, hostname)
+	client := snmp.New(goSNMP)
+	metrics := metrics.New(client, config, *fTarget, *fHostname)
 
 	// Start scraping on a clean 10s boundary within a minute.
 	for time.Now().Second()%10 != 0 {

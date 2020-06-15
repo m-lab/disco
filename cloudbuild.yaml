@@ -2,15 +2,6 @@ timeout: 1800s
 
 steps:
 
-# Run unit tests for environment.
-- name: gcr.io/$PROJECT_ID/golang-cbif
-  args:
-  - go version
-  - go get -v -t ./...
-  - go vet ./...
-  - go test ./... -race
-  - go test -v ./...
-
 #  Be sure building the Docker image works.
 - name: gcr.io/cloud-builders/docker
   args: [

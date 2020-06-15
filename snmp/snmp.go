@@ -10,25 +10,25 @@ type SNMP interface {
 	Get(oids []string) (result *gosnmp.SnmpPacket, err error)
 }
 
-// RealSNMP implements the SNMP interface.
-type RealSNMP struct {
+// Client implements the SNMP interface.
+type Client struct {
 	GoSNMP *gosnmp.GoSNMP
 }
 
 // BulkWalkAll performs an SNMP BulkWalk operation for an OID, returning an
 // array of all values.
-func (s *RealSNMP) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU, err error) {
+func (s *Client) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU, err error) {
 	return s.GoSNMP.BulkWalkAll(rootOid)
 }
 
 // Get does an SNMP Get operation on an array of OIDs.
-func (s *RealSNMP) Get(oids []string) (results *gosnmp.SnmpPacket, err error) {
+func (s *Client) Get(oids []string) (results *gosnmp.SnmpPacket, err error) {
 	return s.GoSNMP.Get(oids)
 }
 
-// Client returns a new RealSNMP object.
-func Client(s *gosnmp.GoSNMP) *RealSNMP {
-	return &RealSNMP{
+// New returns a new SNMP client.
+func New(s *gosnmp.GoSNMP) *Client {
+	return &Client{
 		GoSNMP: s,
 	}
 }

@@ -60,14 +60,12 @@ func TestGoodYamlFile(t *testing.T) {
 	rtx.Must(ioutil.WriteFile(dir+"/metrics.yaml", []byte(goodYaml), 0644), "Could not write YAML to tempfile")
 
 	c, err := New(dir + "/metrics.yaml")
-
 	if len(c.Metrics) != 1 {
 		t.Errorf("Expected 1 metric but got: %v", len(c.Metrics))
 		return
 	}
 
 	m := c.Metrics[0]
-
 	if !reflect.DeepEqual(goodYamlStruct, m) {
 		t.Errorf("Expected Metric '%v' but got: %v", goodYamlStruct, m)
 	}
