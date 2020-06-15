@@ -2,14 +2,16 @@ timeout: 1800s
 
 steps:
 
-# Run tests.
-- name: gcr.io/cloud-builders/go
-  args: [
-    'test', '-v', './...'
-  ]
-  env: ['GOPATH=.']
+# Run unit tests for environment.
+- name: gcr.io/$PROJECT_ID/golang-cbif
+  args:
+  - go version
+  - go get -v -t ./...
+  - go vet ./...
+  - go test ./... -race
+  - go test -v ./...
 
-  # Build the Docker images.
+#  Be sure building the Docker image works.
 - name: gcr.io/cloud-builders/docker
   args: [
     'build', '--tag=gcr.io/$PROJECT_ID/disco', '.'
