@@ -3,10 +3,11 @@ timeout: 1800s
 steps:
 
 # Run tests.
-- name: golang
+- name: gcr.io/cloud-builders/go
   args: [
     'test', '-v', './...'
   ]
+  env: ['GOPATH=.']
 
   # Build the Docker images.
 - name: gcr.io/cloud-builders/docker
