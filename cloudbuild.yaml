@@ -4,7 +4,7 @@ options:
   env:
   - COMMIT_SHA=$COMMIT_SHA
   - GIT_ORIGIN_URL=https://github.com/m-lab/disco.git
-  - WORKSPACE_LINK=/go/src/github.com/m-lab/locate
+  - WORKSPACE_LINK=/go/src/github.com/m-lab/disco
 
 steps:
 
