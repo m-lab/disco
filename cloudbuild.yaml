@@ -1,0 +1,15 @@
+timeout: 1800
+
+steps:
+
+# Run tests.
+- name: golang
+  args: [
+    'test', '-v', './...'
+  ]
+
+  # Build the Docker images.
+- name: gcr.io/cloud-builders/docker
+  args: [
+    'build', '--tag=gcr.io/$PROJECT_ID/disco', '.'
+  ]
