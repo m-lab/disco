@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
+	"github.com/m-lab/disco/config"
+	"github.com/m-lab/disco/snmp"
 	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
-	"github.com/nkinkade/disco-go/config"
 	"github.com/nkinkade/disco-go/metrics"
-	"github.com/nkinkade/disco-go/snmp"
 	"github.com/soniah/gosnmp"
 )
 
