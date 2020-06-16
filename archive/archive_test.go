@@ -102,26 +102,6 @@ func Test_WriteBadPath(t *testing.T) {
 
 }
 
-func Test_WriteUnwritableFile(t *testing.T) {
-	// Creates a tempdir for testing.
-	dir, err := ioutil.TempDir("", "TestWriteUnwritableFile")
-	rtx.Must(err, "Could not create tempdir")
-	defer os.RemoveAll(dir)
-
-	// Creates the directory path to where test file will be written.
-	archivePath := dir + "/2020/06/11/mlab1-abc0t/file.json"
-	rtx.Must(os.MkdirAll(path.Dir(archivePath), 0755), "Could not create directory path")
-
-	// Writes some data to the test file and removes all permissions from the file.
-	rtx.Must(ioutil.WriteFile(archivePath, []byte("data"), 0644), "Could not write test file")
-	os.Chmod(archivePath, 0000)
-
-	err = Write(archivePath, []byte("data"))
-	if err == nil {
-		t.Errorf("Expected an error but did not get one")
-	}
-}
-
 func Test_Write(t *testing.T) {
 	// Creates a tempdir for testing.
 	dir, err := ioutil.TempDir("", "TestWriteUnwritableFile")

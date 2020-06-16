@@ -59,10 +59,7 @@ func Write(archivePath string, data []byte) error {
 	}
 
 	err = ioutil.WriteFile(archivePath, data, 0644)
-	if err != nil {
-		log.Printf("ERROR: failed to write archive file '%v': %v", archivePath, err)
-		return err
-	}
+	rtx.Must(err, "ERROR: failed to write archive file. This should never happen.")
 
 	return nil
 }
