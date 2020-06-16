@@ -42,11 +42,8 @@ var expectedJSON = `{
     ]
 }`
 
-func Test_GetJSON(t *testing.T) {
-	jsonData, err := GetJSON(testModel)
-	if err != nil {
-		t.Error("Did not expect an error, but got one")
-	}
+func Test_MustMarshalJSON(t *testing.T) {
+	jsonData := MustMarshalJSON(testModel)
 
 	if string(jsonData) != expectedJSON {
 		t.Errorf("The collected JSON data does not match what was expected. Got: %v. Expected: %v", string(jsonData), expectedJSON)
@@ -107,7 +104,7 @@ func Test_Write(t *testing.T) {
 	rtx.Must(err, "Could not create tempdir")
 	defer os.RemoveAll(dir)
 
-	jsonData, err := GetJSON(testModel)
+	jsonData := MustMarshalJSON(testModel)
 
 	archivePath := GetPath(time.Now(), "mlab2-abc0t.mlab-sandbox.measurement-lab.org", 300)
 	testArchivePath := fmt.Sprintf("%v/%v", dir, archivePath)

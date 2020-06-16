@@ -26,11 +26,11 @@ type Model struct {
 	Samples    []Sample `json:"sample"`
 }
 
-// GetJSON accepts a Model object and returns marshalled JSON.
-func GetJSON(m Model) ([]byte, error) {
+// MustMarshalJSON accepts a Model object and returns marshalled JSON.
+func MustMarshalJSON(m Model) []byte {
 	data, err := json.MarshalIndent(m, "", "    ")
 	rtx.Must(err, "ERROR: failed to marshal archive.Model to JSON. This should never happen")
-	return data, err
+	return data
 }
 
 // GetPath returns a relative filesystem path where an archive should be written.
