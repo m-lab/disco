@@ -14,8 +14,10 @@ import (
 
 // Sample represents the basic structure for metric samples.
 type Sample struct {
-	Timestamp int64  `json:"timestamp"`
-	Value     uint64 `json:"value"`
+	Timestamp    int64  `json:"timestamp"`
+	CollectStart int64  `json:"collectstart"`
+	CollectEnd   int64  `json:"collectend"`
+	Value        uint64 `json:"value"`
 }
 
 // Model represents the structure of metric for DISCO.
@@ -34,15 +36,12 @@ func MustMarshalJSON(m Model) []byte {
 }
 
 // GetPath returns a relative filesystem path where an archive should be written.
-func GetPath(now time.Time, hostname string, interval uint64) string {
+func GetPath(start time.Time, end time.Time, hostname string) string {
 	// The directory path where the archive should be written.
-	dirs := fmt.Sprintf("%v/%v", now.Format("2006/01/02"), hostname)
+	dirs := fmt.Sprintf("%v/%v", end.Format("2006/01/02"), hostname)
 
-	// Calculate the start time, which will be Now() - interval, and then format
-	// the archive file name based on the calculated values.
-	startTime := now.Add(time.Duration(interval) * -time.Second)
-	startTimeStr := startTime.Format("2006-01-02T15:04:05")
-	endTimeStr := now.Format("2006-01-02T15:04:05")
+	startTimeStr := start.Format("2006-01-02T15:04:05")
+	endTimeStr := end.Format("2006-01-02T15:04:05")
 	archiveName := fmt.Sprintf("%v-to-%v-switch.json", startTimeStr, endTimeStr)
 	archivePath := fmt.Sprintf("%v/%v", dirs, archiveName)
 
