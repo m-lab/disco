@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/m-lab/disco/badge.svg?branch=master)](https://coveralls.io/github/m-lab/disco?branch=master)
+
 # DISCOv2
 
 DISCOv2 is a reimplementation of the DISCO parts of
