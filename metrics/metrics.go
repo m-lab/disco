@@ -41,10 +41,10 @@ type oid struct {
 	intervalSeries archive.Model
 }
 
-// getIfaces uses an ifAlias value to determine the logical interface number and
+// mustGetIfaces uses an ifAlias value to determine the logical interface number and
 // description for the machine's interface and the switch's uplink.
-func getIfaces(snmp snmp.SNMP, machine string) map[string]map[string]string {
-	pdus, err := snmp.BulkWalkAll(ifAliasOid)
+func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]string {
+	pdus, err := client.BulkWalkAll(ifAliasOid)
 	rtx.Must(err, "Failed to walk the ifAlias OID")
 
 	ifaces := map[string]map[string]string{
@@ -66,14 +66,14 @@ func getIfaces(snmp snmp.SNMP, machine string) map[string]map[string]string {
 		val := strings.TrimSpace(string(b))
 		if val == machine {
 			ifDescrOid := createOID(ifDescrOidStub, iface)
-			oidMap, err := getOidsString(snmp, []string{ifDescrOid})
+			oidMap, err := getOidsString(client, []string{ifDescrOid})
 			rtx.Must(err, "Failed to determine the machine interface ifDescr")
 			ifaces["machine"]["ifDescr"] = oidMap[ifDescrOid]
 			ifaces["machine"]["iface"] = iface
 		}
 		if strings.HasPrefix(val, "uplink") {
 			ifDescrOid := createOID(ifDescrOidStub, iface)
-			oidMap, err := getOidsString(snmp, []string{ifDescrOid})
+			oidMap, err := getOidsString(client, []string{ifDescrOid})
 			rtx.Must(err, "Failed to determine the uplink interface ifDescr")
 			ifaces["uplink"]["ifDescr"] = oidMap[ifDescrOid]
 			ifaces["uplink"]["iface"] = iface
@@ -85,9 +85,9 @@ func getIfaces(snmp snmp.SNMP, machine string) map[string]map[string]string {
 
 // getOidsString accepts a list of OIDS and returns a map of the OIDs to their
 // string values.
-func getOidsString(snmp snmp.SNMP, oids []string) (map[string]string, error) {
+func getOidsString(client snmp.Client, oids []string) (map[string]string, error) {
 	oidMap := make(map[string]string)
-	result, err := snmp.Get(oids)
+	result, err := client.Get(oids)
 	for _, pdu := range result.Variables {
 		oidMap[pdu.Name] = string(pdu.Value.([]byte))
 	}
@@ -99,13 +99,13 @@ func getOidsString(snmp snmp.SNMP, oids []string) (map[string]string, error) {
 //
 // Counter32 OIDs seem to be presented as type uint, while Counter64 OIDs seem
 // to be presented as type uint64.
-func getOidsInt64(snmp snmp.SNMP, oids []string) (map[string]uint64, error) {
+func getOidsInt64(client snmp.Client, oids []string) (map[string]uint64, error) {
 	oidMap := make(map[string]uint64)
-	result, err := snmp.Get(oids)
-	if result == nil {
-		err = fmt.Errorf("No results returned from server for oids: %v", oids)
+	result, err := client.Get(oids)
+	if err != nil {
 		return nil, err
 	}
+
 	for _, pdu := range result.Variables {
 		switch value := pdu.Value.(type) {
 		case uint:
@@ -117,7 +117,7 @@ func getOidsInt64(snmp snmp.SNMP, oids []string) (map[string]uint64, error) {
 			return nil, err
 		}
 	}
-	return oidMap, err
+	return oidMap, nil
 }
 
 // createOID joins an OID stub with a logical interface number, returning the
@@ -129,7 +129,7 @@ func createOID(oidStub string, iface string) string {
 // Collect scrapes values for a list of OIDs and updates a map of OIDs,
 // appending a new archive.Sample representing the increase from the previous
 // scrape to an array of samples for that OID.
-func (metrics *Metrics) Collect(snmp snmp.SNMP, config config.Config) error {
+func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error {
 	// Set a lock to avoid a race between the collecting and writing of metrics.
 	metrics.mutex.Lock()
 	defer metrics.mutex.Unlock()
@@ -140,7 +140,7 @@ func (metrics *Metrics) Collect(snmp snmp.SNMP, config config.Config) error {
 	}
 
 	collectStart := time.Now()
-	oidValueMap, err := getOidsInt64(snmp, oids)
+	oidValueMap, err := getOidsInt64(client, oids)
 	if err != nil {
 		log.Printf("ERROR: failed to GET OIDs (%v) from SNMP server: %v", oids, err)
 		// TODO(kinkade): increment some sort of error metric here.
@@ -214,9 +214,9 @@ func (metrics *Metrics) Write(start time.Time, end time.Time) {
 }
 
 // New creates a new metrics.Metrics struct with various OID maps initialized.
-func New(snmp snmp.SNMP, config config.Config, target string, hostname string) *Metrics {
+func New(client snmp.Client, config config.Config, target string, hostname string) *Metrics {
 	machine := hostname[:5]
-	ifaces := getIfaces(snmp, machine)
+	ifaces := mustGetIfaces(client, machine)
 
 	m := &Metrics{
 		oids:     make(map[string]oid),

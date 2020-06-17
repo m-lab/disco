@@ -132,12 +132,12 @@ var snmpPacketMetricsRun2 = gosnmp.SnmpPacket{
 	},
 }
 
-type mockRealSNMP struct {
+type mockSwitchClient struct {
 	err error
 	run int
 }
 
-func (m *mockRealSNMP) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU, err error) {
+func (m *mockSwitchClient) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU, err error) {
 	return []gosnmp.SnmpPDU{
 		{
 			Name:  ifDescrMachineOID,
@@ -152,7 +152,7 @@ func (m *mockRealSNMP) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU, er
 	}, nil
 }
 
-func (m *mockRealSNMP) Get(oids []string) (result *gosnmp.SnmpPacket, err error) {
+func (m *mockSwitchClient) Get(oids []string) (result *gosnmp.SnmpPacket, err error) {
 	var packet *gosnmp.SnmpPacket
 
 	// len(oids) will only be one when looking up ifDescr.
@@ -188,7 +188,7 @@ func Test_New(t *testing.T) {
 	// metric twice.
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 
-	s := &mockRealSNMP{
+	s := &mockSwitchClient{
 		err: nil,
 	}
 	m := New(s, c, target, hostname)
@@ -288,7 +288,7 @@ func Test_Collect(t *testing.T) {
 		},
 	}
 
-	s1 := &mockRealSNMP{
+	s1 := &mockSwitchClient{
 		err: nil,
 		run: 1,
 	}
@@ -307,7 +307,7 @@ func Test_Collect(t *testing.T) {
 		}
 	}
 
-	s2 := &mockRealSNMP{
+	s2 := &mockSwitchClient{
 		err: nil,
 		run: 2,
 	}
@@ -333,7 +333,7 @@ func Test_Collect(t *testing.T) {
 }
 
 func Test_getOidsInt64BadType(t *testing.T) {
-	var s = &mockRealSNMP{}
+	var s = &mockSwitchClient{}
 	var oids = []string{sysUpTimeOID}
 	_, err := getOidsInt64(s, oids)
 	if err == nil {
@@ -342,7 +342,7 @@ func Test_getOidsInt64BadType(t *testing.T) {
 }
 
 func Test_getOidsInt64NoResults(t *testing.T) {
-	var s = &mockRealSNMP{}
+	var s = &mockSwitchClient{}
 	var oids = []string{"fake-oid"}
 	_, err := getOidsInt64(s, oids)
 	if err == nil {
@@ -353,10 +353,10 @@ func Test_getOidsInt64NoResults(t *testing.T) {
 func Test_CollectWithSnmpError(t *testing.T) {
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 
-	s := &mockRealSNMP{}
+	s := &mockSwitchClient{}
 	m := New(s, c, target, hostname)
 
-	sErr := &mockRealSNMP{
+	sErr := &mockSwitchClient{
 		err: fmt.Errorf("An SNMP error occured: %s", "error"),
 		run: 1,
 	}
@@ -369,14 +369,14 @@ func Test_CollectWithSnmpError(t *testing.T) {
 func Test_Write(t *testing.T) {
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 
-	s1 := &mockRealSNMP{
+	s1 := &mockSwitchClient{
 		err: nil,
 		run: 1,
 	}
 	m := New(s1, c, target, hostname)
 	m.Collect(s1, c)
 
-	s2 := &mockRealSNMP{
+	s2 := &mockSwitchClient{
 		err: nil,
 		run: 2,
 	}

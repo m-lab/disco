@@ -7,7 +7,7 @@ import (
 	"github.com/soniah/gosnmp"
 )
 
-func Test_Client(t *testing.T) {
+func Test_New(t *testing.T) {
 	goSNMP := &gosnmp.GoSNMP{
 		Target:    "s1-abc0t.measurement-lab.org",
 		Port:      uint16(161),
@@ -19,9 +19,8 @@ func Test_Client(t *testing.T) {
 
 	client := New(goSNMP)
 	var i interface{} = client
-	_, ok := i.(SNMP)
+	_, ok := i.(Client)
 	if !ok {
-		t.Error("Expected return value of New() to implement interface SNMP.")
+		t.Error("Expected return value of New() to implement interface Client.")
 	}
 }
-

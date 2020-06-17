@@ -78,15 +78,12 @@ func main() {
 	// immediately after the ticker is created.
 	metrics.Collect(client, config)
 
-	// When the context is canceled, stop the tickers.
-	go func() {
-		<-mainCtx.Done()
-		collectTicker.Stop()
-		writeTicker.Stop()
-	}()
-
 	for {
 		select {
+		case <-mainCtx.Done():
+			collectTicker.Stop()
+			writeTicker.Stop()
+			return
 		case <-writeTicker.C:
 			start := metrics.IntervalStart
 			metrics.IntervalStart = time.Now()
