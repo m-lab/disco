@@ -121,6 +121,7 @@ func Test_Write(t *testing.T) {
 	testArchivePath := fmt.Sprintf("%v/%v", dir, archivePath)
 
 	err = Write(testArchivePath, jsonData)
+	rtx.Must(err, "Failed to Write test jsonData to testARchivePath")
 
 	contents, err := ioutil.ReadFile(testArchivePath)
 	rtx.Must(err, "Could not read test archive file")

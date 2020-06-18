@@ -20,10 +20,13 @@ const (
 	ifDescrOidStub = ".1.3.6.1.2.1.2.2.1.2"
 )
 
-// Metrics represents a collection of oids, plus additional data about the environment.
-type Metrics struct {
+var (
 	collectDuration *prometheus.HistogramVec
 	collectErrors   *prometheus.CounterVec
+)
+
+// Metrics represents a collection of oids, plus additional data about the environment.
+type Metrics struct {
 	// TODO(kinkade): remove this field in favor of a more elegant solution.
 	firstRun      bool
 	hostname      string
@@ -145,13 +148,13 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 	oidValueMap, err := getOidsInt64(client, oids)
 	if err != nil {
 		log.Printf("ERROR: failed to GET OIDs (%v) from SNMP server: %v", oids, err)
-		metrics.collectErrors.WithLabelValues(metrics.hostname).Inc()
+		collectErrors.WithLabelValues(metrics.hostname).Inc()
 		return err
 	}
 	collectEnd := time.Now()
 
 	// Add the collect duration in seconds to a historgram metric.
-	metrics.collectDuration.WithLabelValues(metrics.hostname).Observe(
+	collectDuration.WithLabelValues(metrics.hostname).Observe(
 		float64(collectEnd.Sub(collectStart)) / float64(time.Second),
 	)
 
@@ -218,22 +221,24 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 	machine := hostname[:5]
 	ifaces := mustGetIfaces(client, machine)
 
+	collectDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "disco_collect_duration_seconds",
+			Help:    "SNMP collection duration distribution.",
+			Buckets: []float64{0.1, 0.3, 0.5, 1, 3, 5},
+		},
+		[]string{"machine"},
+	)
+
+	collectErrors = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "disco_collect_errors_total",
+			Help: "Total number SNMP collection errors.",
+		},
+		[]string{"machine"},
+	)
+
 	m := &Metrics{
-		collectDuration: promauto.NewHistogramVec(
-			prometheus.HistogramOpts{
-				Name:    "disco_collect_duration_seconds",
-				Help:    "SNMP collection duration distribution.",
-				Buckets: []float64{0.1, 0.3, 0.5, 1, 3, 5},
-			},
-			[]string{"machine"},
-		),
-		collectErrors: promauto.NewCounterVec(
-			prometheus.CounterOpts{
-				Name: "disco_collect_errors_total",
-				Help: "Total number SNMP collection errors.",
-			},
-			[]string{"machine"},
-		),
 		firstRun: true,
 		hostname: hostname,
 		machine:  machine,
