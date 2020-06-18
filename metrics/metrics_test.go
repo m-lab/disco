@@ -202,7 +202,7 @@ func Test_New(t *testing.T) {
 			previousValue: 0,
 			scope:         "machine",
 			ifDescr:       "xe-0/0/12",
-			intervalSeries: archive.Model{
+			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
 				Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
 				Metric:     "switch.discards.local.tx",
@@ -214,7 +214,7 @@ func Test_New(t *testing.T) {
 			previousValue: 0,
 			scope:         "uplink",
 			ifDescr:       "xe-0/0/45",
-			intervalSeries: archive.Model{
+			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
 				Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
 				Metric:     "switch.discards.uplink.tx",
@@ -226,7 +226,7 @@ func Test_New(t *testing.T) {
 			previousValue: 0,
 			scope:         "machine",
 			ifDescr:       "xe-0/0/12",
-			intervalSeries: archive.Model{
+			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
 				Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
 				Metric:     "switch.octets.local.rx",
@@ -238,7 +238,7 @@ func Test_New(t *testing.T) {
 			previousValue: 0,
 			scope:         "uplink",
 			ifDescr:       "xe-0/0/45",
-			intervalSeries: archive.Model{
+			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
 				Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
 				Metric:     "switch.octets.uplink.rx",
@@ -305,8 +305,8 @@ func Test_Collect(t *testing.T) {
 				oid, expectedValues[oid]["run1Prev"], m.oids[oid].previousValue)
 		}
 		// Be sure that the number of samples is what we expect.
-		if len(m.oids[oid].intervalSeries.Samples) != 0 {
-			t.Errorf("For OID %v expected 0 samples after run1, but got: %v", oid, len(m.oids[oid].intervalSeries.Samples))
+		if len(m.oids[oid].interval.Samples) != 0 {
+			t.Errorf("For OID %v expected 0 samples after run1, but got: %v", oid, len(m.oids[oid].interval.Samples))
 		}
 	}
 
@@ -323,13 +323,13 @@ func Test_Collect(t *testing.T) {
 				oid, expectedValues[oid]["run2Prev"], m.oids[oid].previousValue)
 		}
 		// Be sure that the number of samples is what we expect.
-		if len(m.oids[oid].intervalSeries.Samples) != 1 {
-			t.Errorf("For OID %v expected 1 samples after run2, but got: %v", oid, len(m.oids[oid].intervalSeries.Samples))
+		if len(m.oids[oid].interval.Samples) != 1 {
+			t.Errorf("For OID %v expected 1 samples after run2, but got: %v", oid, len(m.oids[oid].interval.Samples))
 		}
 
-		if m.oids[oid].intervalSeries.Samples[0].Value != expectedValues[oid]["run2Sample"] {
+		if m.oids[oid].interval.Samples[0].Value != expectedValues[oid]["run2Sample"] {
 			t.Errorf("For OID %v expected a sample value of %v after run2 but got: %v",
-				oid, expectedValues[oid]["run2Sample"], m.oids[oid].intervalSeries.Samples[0].Value)
+				oid, expectedValues[oid]["run2Sample"], m.oids[oid].interval.Samples[0].Value)
 		}
 	}
 

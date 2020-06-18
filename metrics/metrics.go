@@ -34,11 +34,11 @@ type Metrics struct {
 }
 
 type oid struct {
-	name           string
-	previousValue  uint64
-	scope          string
-	ifDescr        string
-	intervalSeries archive.Model
+	name          string
+	previousValue uint64
+	scope         string
+	ifDescr       string
+	interval      archive.Model
 }
 
 // mustGetIfaces uses an ifAlias value to determine the logical interface number and
@@ -161,8 +161,8 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 		metricName := metrics.oids[oid].name
 		metrics.prom[metricName].WithLabelValues(metrics.hostname, ifDescr).Add(float64(increase))
 
-		metrics.oids[oid].intervalSeries.Samples = append(
-			metrics.oids[oid].intervalSeries.Samples,
+		metrics.oids[oid].interval.Samples = append(
+			metrics.oids[oid].interval.Samples,
 			archive.Sample{
 				Timestamp:    metrics.CollectStart.Unix(),
 				CollectStart: collectStart.UnixNano(),
@@ -189,11 +189,11 @@ func (metrics *Metrics) Write(start time.Time, end time.Time) {
 	defer metrics.mutex.Unlock()
 
 	for oid, values := range metrics.oids {
-		data := archive.MustMarshalJSON(values.intervalSeries)
+		data := archive.MustMarshalJSON(values.interval)
 		jsonData = append(jsonData, data...)
 		// Reset the samples to an empty slice of archive.Sample for the next
 		// interval.
-		metrics.oids[oid].intervalSeries.Samples = []archive.Sample{}
+		metrics.oids[oid].interval.Samples = []archive.Sample{}
 	}
 
 	archivePath := archive.GetPath(start, end, metrics.hostname)
@@ -228,7 +228,7 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 				name:    metric.Name,
 				scope:   scope,
 				ifDescr: values["ifDescr"],
-				intervalSeries: archive.Model{
+				interval: archive.Model{
 					Experiment: target,
 					Hostname:   hostname,
 					Metric:     discoNames[scope],
@@ -243,7 +243,7 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 				Help: metric.Description,
 			},
 			[]string{
-				"node",
+				"machine",
 				"interface",
 			},
 		)
