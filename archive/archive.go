@@ -30,7 +30,7 @@ type Model struct {
 
 // MustMarshalJSON accepts a Model object and returns marshalled JSON.
 func MustMarshalJSON(m Model) []byte {
-	data, err := json.MarshalIndent(m, "", "    ")
+	data, err := json.Marshal(m)
 	rtx.Must(err, "ERROR: failed to marshal archive.Model to JSON. This should never happen")
 	return data
 }
@@ -42,7 +42,7 @@ func GetPath(start time.Time, end time.Time, hostname string) string {
 
 	startTimeStr := start.Format("2006-01-02T15:04:05")
 	endTimeStr := end.Format("2006-01-02T15:04:05")
-	archiveName := fmt.Sprintf("%v-to-%v-switch.json", startTimeStr, endTimeStr)
+	archiveName := fmt.Sprintf("%v-to-%v-switch.jsonl", startTimeStr, endTimeStr)
 	archivePath := fmt.Sprintf("%v/%v", dirs, archiveName)
 
 	return archivePath

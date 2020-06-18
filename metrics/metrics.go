@@ -166,7 +166,7 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 		increase := value - metrics.oids[oid].previousValue
 		ifDescr := metrics.oids[oid].ifDescr
 		metricName := metrics.oids[oid].name
-		metrics.prom[metricName].WithLabelValues(metrics.hostname, ifDescr).Add(float64(increase))
+		metrics.prom[metricName].WithLabelValues(ifDescr).Add(float64(increase))
 
 		metrics.oids[oid].interval.Samples = append(
 			metrics.oids[oid].interval.Samples,
@@ -198,6 +198,8 @@ func (metrics *Metrics) Write(start time.Time, end time.Time) {
 	for oid, values := range metrics.oids {
 		data := archive.MustMarshalJSON(values.interval)
 		jsonData = append(jsonData, data...)
+		// Adds a newline to the end of the JSON data to effectively create JSONL.
+		jsonData = append(jsonData, '\n')
 		// Reset the samples to an empty slice of archive.Sample for the next
 		// interval.
 		metrics.oids[oid].interval.Samples = []archive.Sample{}
@@ -265,7 +267,6 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 				Help: metric.Description,
 			},
 			[]string{
-				"machine",
 				"interface",
 			},
 		)
