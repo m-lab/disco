@@ -1,61 +1,57 @@
 package archive
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/m-lab/go/rtx"
 )
 
-var testModel = Model{
-	Experiment: "s1-abc0t.measurement-lab.org",
-	Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
-	Metric:     "switch.unicast.uplink.tx",
-	Samples: []Sample{
-		Sample{
-			Timestamp:    1591845348,
-			CollectStart: 1592344911240000000,
-			CollectEnd:   1592344912360000000,
-			Value:        158,
-		},
-		Sample{
-			Timestamp:    1591845358,
-			CollectStart: 1592344911240000000,
-			CollectEnd:   1592344912360000000,
-			Value:        132,
+var testModels = []Model{
+	Model{
+		Experiment: "s1-abc0t.measurement-lab.org",
+		Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
+		Metric:     "switch.unicast.uplink.tx",
+		Samples: []Sample{
+			Sample{
+				Timestamp:    1591845348,
+				CollectStart: 1592344911240000000,
+				CollectEnd:   1592344912360000000,
+				Value:        158,
+			},
+			Sample{
+				Timestamp:    1591845358,
+				CollectStart: 1592344911240000000,
+				CollectEnd:   1592344912360000000,
+				Value:        132,
+			},
 		},
 	},
-}
-
-var expectedJSON = `{
-    "experiment": "s1-abc0t.measurement-lab.org",
-    "hostname": "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
-    "metric": "switch.unicast.uplink.tx",
-    "sample": [
-        {
-            "timestamp": 1591845348,
-            "collectstart": 1592344911240000000,
-            "collectend": 1592344912360000000,
-            "value": 158
-        },
-        {
-            "timestamp": 1591845358,
-            "collectstart": 1592344911240000000,
-            "collectend": 1592344912360000000,
-            "value": 132
-        }
-    ]
-}`
-
-func Test_MustMarshalJSON(t *testing.T) {
-	jsonData := MustMarshalJSON(testModel)
-
-	if string(jsonData) != expectedJSON {
-		t.Errorf("The collected JSON data does not match what was expected. Got: %v. Expected: %v", string(jsonData), expectedJSON)
-	}
+	Model{
+		Experiment: "s1-abc0t.measurement-lab.org",
+		Hostname:   "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
+		Metric:     "switch.octets.local.rx",
+		Samples: []Sample{
+			Sample{
+				Timestamp:    1591845348,
+				CollectStart: 1592344911240000000,
+				CollectEnd:   1592344912360000000,
+				Value:        3256,
+			},
+			Sample{
+				Timestamp:    1591845358,
+				CollectStart: 1592344911240000000,
+				CollectEnd:   1592344912360000000,
+				Value:        2789,
+			},
+		},
+	},
 }
 
 func Test_GetPath(t *testing.T) {
@@ -69,19 +65,19 @@ func Test_GetPath(t *testing.T) {
 			end:      time.Date(2010, 04, 18, 20, 34, 50, 0, time.UTC),
 			interval: 60,
 			hostname: "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
-			expect:   "2010/04/18/mlab2-abc0t.mlab-sandbox.measurement-lab.org/2010-04-18T20:33:50-to-2010-04-18T20:34:50-switch.json",
+			expect:   "2010/04/18/mlab2-abc0t.mlab-sandbox.measurement-lab.org/2010-04-18T20:33:50-to-2010-04-18T20:34:50-switch.jsonl",
 		},
 		{
 			end:      time.Date(1972, 07, 03, 11, 14, 10, 0, time.UTC),
 			interval: 600,
 			hostname: "mlab4-xyz03.mlab-staging.measurement-lab.org",
-			expect:   "1972/07/03/mlab4-xyz03.mlab-staging.measurement-lab.org/1972-07-03T11:04:10-to-1972-07-03T11:14:10-switch.json",
+			expect:   "1972/07/03/mlab4-xyz03.mlab-staging.measurement-lab.org/1972-07-03T11:04:10-to-1972-07-03T11:14:10-switch.jsonl",
 		},
 		{
 			end:      time.Date(2020, 06, 11, 18, 18, 30, 0, time.UTC),
 			interval: 300,
 			hostname: "mlab1-qrs0t.mlab-sandbox.measurement-lab.org",
-			expect:   "2020/06/11/mlab1-qrs0t.mlab-sandbox.measurement-lab.org/2020-06-11T18:13:30-to-2020-06-11T18:18:30-switch.json",
+			expect:   "2020/06/11/mlab1-qrs0t.mlab-sandbox.measurement-lab.org/2020-06-11T18:13:30-to-2020-06-11T18:18:30-switch.jsonl",
 		},
 	}
 
@@ -113,7 +109,11 @@ func Test_Write(t *testing.T) {
 	rtx.Must(err, "Could not create tempdir")
 	defer os.RemoveAll(dir)
 
-	jsonData := MustMarshalJSON(testModel)
+	jsonData := []byte{}
+	for _, model := range testModels {
+		jsonData = append(jsonData, MustMarshalJSON(model)...)
+		jsonData = append(jsonData, '\n')
+	}
 
 	endTime := time.Now()
 	startTime := endTime.Add(time.Duration(10) * -time.Second)
@@ -125,8 +125,17 @@ func Test_Write(t *testing.T) {
 	contents, err := ioutil.ReadFile(testArchivePath)
 	rtx.Must(err, "Could not read test archive file")
 
-	if string(contents) != expectedJSON {
-		t.Error("Contents of written archive file do match expected contents")
+	readModels := []Model{}
+	data := bytes.NewReader(contents)
+	dec := json.NewDecoder(data)
+	for dec.More() {
+		model := Model{}
+		err := dec.Decode(&model)
+		rtx.Must(err, "Failed to Decode JSON")
+		readModels = append(readModels, model)
 	}
 
+	if !reflect.DeepEqual(testModels, readModels) {
+		t.Errorf("Expected testModels:\n%v\nGot readModels:\n%v", testModels, readModels)
+	}
 }
