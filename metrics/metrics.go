@@ -25,7 +25,7 @@ type Metrics struct {
 	// TODO(kinkade): remove this field in favor of a more elegant solution.
 	firstRun      bool
 	hostname      string
-	oids          map[string]oid
+	oids          map[string]*oid
 	machine       string
 	mutex         sync.Mutex
 	prom          map[string]*prometheus.CounterVec
@@ -128,7 +128,7 @@ func createOID(oidStub string, iface string) string {
 
 // Collect scrapes values for a list of OIDs and updates a map of OIDs,
 // appending a new archive.Sample representing the increase from the previous
-// scrape to an array of samples for that OID.
+// scrape to an slice of samples for that OID.
 func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error {
 	// Set a lock to avoid a race between the collecting and writing of metrics.
 	metrics.mutex.Lock()
@@ -149,16 +149,10 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 	collectEnd := time.Now()
 
 	for oid, value := range oidValueMap {
-		// This is less than ideal. Because we can't write to a map in a struct
-		// we have to copy the whole map, modify it and then overwrite the
-		// original map. There is likely a better way to do this.
-		metricOid := metrics.oids[oid]
-		metricOid.previousValue = value
-
 		// If this is the first run then we have no previousValue with which to
 		// calculate an increase, so we just record a previousValue and return.
-		if metrics.firstRun == true {
-			metrics.oids[oid] = metricOid
+		if metrics.firstRun {
+			metrics.oids[oid].previousValue = value
 			continue
 		}
 
@@ -167,18 +161,19 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 		metricName := metrics.oids[oid].name
 		metrics.prom[metricName].WithLabelValues(metrics.hostname, ifDescr).Add(float64(increase))
 
-		metricOid.intervalSeries.Samples = append(
-			metricOid.intervalSeries.Samples,
+		metrics.oids[oid].intervalSeries.Samples = append(
+			metrics.oids[oid].intervalSeries.Samples,
 			archive.Sample{
 				Timestamp:    metrics.CollectStart.Unix(),
 				CollectStart: collectStart.UnixNano(),
 				CollectEnd:   collectEnd.UnixNano(),
 				Value:        increase},
 		)
-		metrics.oids[oid] = metricOid
+
+		metrics.oids[oid].previousValue = value
 	}
 
-	if metrics.firstRun == true {
+	if metrics.firstRun {
 		metrics.firstRun = false
 	}
 
@@ -196,13 +191,9 @@ func (metrics *Metrics) Write(start time.Time, end time.Time) {
 	for oid, values := range metrics.oids {
 		data := archive.MustMarshalJSON(values.intervalSeries)
 		jsonData = append(jsonData, data...)
-
-		// This is less than ideal. Because we can't write to a map in a struct
-		// we have to copy the whole map, modify it and then overwrite the
-		// original map. There is likely a better way to do this.
-		metricsOid := metrics.oids[oid]
-		metricsOid.intervalSeries.Samples = []archive.Sample{}
-		metrics.oids[oid] = metricsOid
+		// Reset the samples to an empty slice of archive.Sample for the next
+		// interval.
+		metrics.oids[oid].intervalSeries.Samples = []archive.Sample{}
 	}
 
 	archivePath := archive.GetPath(start, end, metrics.hostname)
@@ -219,7 +210,7 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 	ifaces := mustGetIfaces(client, machine)
 
 	m := &Metrics{
-		oids:     make(map[string]oid),
+		oids:     make(map[string]*oid),
 		prom:     make(map[string]*prometheus.CounterVec),
 		hostname: hostname,
 		machine:  machine,
@@ -233,7 +224,7 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 		}
 		for scope, values := range ifaces {
 			oidStr := createOID(metric.OidStub, values["iface"])
-			o := oid{
+			o := &oid{
 				name:    metric.Name,
 				scope:   scope,
 				ifDescr: values["ifDescr"],

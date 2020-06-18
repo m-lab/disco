@@ -20,7 +20,7 @@ var (
 	fHostname           = flag.String("hostname", "", "The FQDN of the node.")
 	fListenAddress      = flag.String("listen-address", ":8888", "Address to listen on for telemetry.")
 	fMetricsFile        = flag.String("metrics", "", "Path to YAML file defining metrics to scrape.")
-	fWriteInterval      = flag.Uint64("write-interval", 300, "Interval in seconds to write out JSON files.")
+	fWriteInterval      = flag.Duration("write-interval", 300*time.Second, "Interval to write out JSON files e.g, 300s, 10m.")
 	fTarget             = flag.String("target", "", "Switch FQDN to scrape metrics from.")
 	logFatal            = log.Fatal
 	mainCtx, mainCancel = context.WithCancel(context.Background())
@@ -69,7 +69,7 @@ func main() {
 		time.Sleep(1 * time.Millisecond)
 	}
 
-	writeTicker := time.NewTicker(time.Duration(*fWriteInterval) * time.Second)
+	writeTicker := time.NewTicker(*fWriteInterval)
 	metrics.IntervalStart = time.Now()
 
 	collectTicker := time.NewTicker(10 * time.Second)
