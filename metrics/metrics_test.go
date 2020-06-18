@@ -155,7 +155,7 @@ func (m *mockSwitchClient) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU
 func (m *mockSwitchClient) Get(oids []string) (result *gosnmp.SnmpPacket, err error) {
 	var packet *gosnmp.SnmpPacket
 
-	// len(oids) will only be one when looking up ifDescr.
+	// len(oids) will only be one when looking up ifDescr and for test cases.
 	if len(oids) == 1 {
 		if oids[0] == ifDescrMachineOID {
 			packet = &snmpPacketMachine
@@ -165,6 +165,9 @@ func (m *mockSwitchClient) Get(oids []string) (result *gosnmp.SnmpPacket, err er
 		}
 		if oids[0] == sysUpTimeOID {
 			packet = &snmpPacketSysUptime
+		}
+		if oids[0] == "invalid-oid" {
+			packet = nil
 		}
 	}
 
@@ -193,8 +196,8 @@ func Test_New(t *testing.T) {
 	}
 	m := New(s, c, target, hostname)
 
-	var expectedMetricsOIDs = map[string]oid{
-		ifOutDiscardsMachineOID: oid{
+	var expectedMetricsOIDs = map[string]*oid{
+		ifOutDiscardsMachineOID: &oid{
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "machine",
@@ -206,7 +209,7 @@ func Test_New(t *testing.T) {
 				Samples:    []archive.Sample{},
 			},
 		},
-		ifOutDiscardsUplinkOID: oid{
+		ifOutDiscardsUplinkOID: &oid{
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "uplink",
@@ -218,7 +221,7 @@ func Test_New(t *testing.T) {
 				Samples:    []archive.Sample{},
 			},
 		},
-		ifHCInOctetsMachineOID: oid{
+		ifHCInOctetsMachineOID: &oid{
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "machine",
@@ -230,7 +233,7 @@ func Test_New(t *testing.T) {
 				Samples:    []archive.Sample{},
 			},
 		},
-		ifHCInOctetsUplinkOID: oid{
+		ifHCInOctetsUplinkOID: &oid{
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "uplink",
@@ -341,9 +344,11 @@ func Test_getOidsInt64BadType(t *testing.T) {
 	}
 }
 
-func Test_getOidsInt64NoResults(t *testing.T) {
-	var s = &mockSwitchClient{}
-	var oids = []string{"fake-oid"}
+func Test_getOidsInt64InvalidOID(t *testing.T) {
+	var s = &mockSwitchClient{
+		err: fmt.Errorf("ERROR: %v", "marshal: unable to marshal OID: invalid object identifier"),
+	}
+	var oids = []string{"invalid-oid"}
 	_, err := getOidsInt64(s, oids)
 	if err == nil {
 		t.Errorf("Expected an error but didn't get one")
