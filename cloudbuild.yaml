@@ -17,7 +17,7 @@ steps:
   - go test ./... -race
   - go test -v ./...
 
-  Be sure building the Docker image works.
+# Be sure building the Docker image works.
 - name: gcr.io/cloud-builders/docker
   args: [
     'build', '--tag=gcr.io/$PROJECT_ID/disco', '.'
