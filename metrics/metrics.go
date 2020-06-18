@@ -22,6 +22,8 @@ const (
 
 // Metrics represents a collection of oids, plus additional data about the environment.
 type Metrics struct {
+	collectDuration *prometheus.HistogramVec
+	collectErrors   *prometheus.CounterVec
 	// TODO(kinkade): remove this field in favor of a more elegant solution.
 	firstRun      bool
 	hostname      string
@@ -143,10 +145,15 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 	oidValueMap, err := getOidsInt64(client, oids)
 	if err != nil {
 		log.Printf("ERROR: failed to GET OIDs (%v) from SNMP server: %v", oids, err)
-		// TODO(kinkade): increment some sort of error metric here.
+		metrics.collectErrors.WithLabelValues(metrics.hostname).Inc()
 		return err
 	}
 	collectEnd := time.Now()
+
+	// Add the collect duration in seconds to a historgram metric.
+	metrics.collectDuration.WithLabelValues(metrics.hostname).Observe(
+		float64(collectEnd.Sub(collectStart)) / float64(time.Second),
+	)
 
 	for oid, value := range oidValueMap {
 		// If this is the first run then we have no previousValue with which to
@@ -210,11 +217,26 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 	ifaces := mustGetIfaces(client, machine)
 
 	m := &Metrics{
-		oids:     make(map[string]*oid),
-		prom:     make(map[string]*prometheus.CounterVec),
+		collectDuration: promauto.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:    "disco_collect_duration_seconds",
+				Help:    "SNMP collection duration distribution.",
+				Buckets: []float64{0.1, 0.3, 0.5, 1, 3, 5},
+			},
+			[]string{"machine"},
+		),
+		collectErrors: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "disco_collect_errors_total",
+				Help: "Total number SNMP collection errors.",
+			},
+			[]string{"machine"},
+		),
+		firstRun: true,
 		hostname: hostname,
 		machine:  machine,
-		firstRun: true,
+		oids:     make(map[string]*oid),
+		prom:     make(map[string]*prometheus.CounterVec),
 	}
 
 	for _, metric := range config.Metrics {
