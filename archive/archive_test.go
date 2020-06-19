@@ -65,25 +65,25 @@ func Test_GetPath(t *testing.T) {
 			end:      time.Date(2010, 04, 18, 20, 34, 50, 0, time.UTC),
 			interval: 60,
 			hostname: "mlab2-abc0t.mlab-sandbox.measurement-lab.org",
-			expect:   "2010/04/18/mlab2-abc0t.mlab-sandbox.measurement-lab.org/2010-04-18T20:33:50-to-2010-04-18T20:34:50-switch.jsonl",
+			expect:   "./switch/2010/04/18/mlab2-abc0t.mlab-sandbox.measurement-lab.org/2010-04-18T20:33:50-to-2010-04-18T20:34:50-switch.jsonl",
 		},
 		{
 			end:      time.Date(1972, 07, 03, 11, 14, 10, 0, time.UTC),
 			interval: 600,
 			hostname: "mlab4-xyz03.mlab-staging.measurement-lab.org",
-			expect:   "1972/07/03/mlab4-xyz03.mlab-staging.measurement-lab.org/1972-07-03T11:04:10-to-1972-07-03T11:14:10-switch.jsonl",
+			expect:   "./switch/1972/07/03/mlab4-xyz03.mlab-staging.measurement-lab.org/1972-07-03T11:04:10-to-1972-07-03T11:14:10-switch.jsonl",
 		},
 		{
 			end:      time.Date(2020, 06, 11, 18, 18, 30, 0, time.UTC),
 			interval: 300,
 			hostname: "mlab1-qrs0t.mlab-sandbox.measurement-lab.org",
-			expect:   "2020/06/11/mlab1-qrs0t.mlab-sandbox.measurement-lab.org/2020-06-11T18:13:30-to-2020-06-11T18:18:30-switch.jsonl",
+			expect:   "./switch/2020/06/11/mlab1-qrs0t.mlab-sandbox.measurement-lab.org/2020-06-11T18:13:30-to-2020-06-11T18:18:30-switch.jsonl",
 		},
 	}
 
 	for _, tt := range tests {
 		start := tt.end.Add(time.Duration(tt.interval) * -time.Second)
-		archivePath := GetPath(start, tt.end, tt.hostname)
+		archivePath := GetPath(start, tt.end, ".", tt.hostname)
 		if archivePath != tt.expect {
 			t.Errorf("Expected archive path '%v', but got: %v", tt.expect, archivePath)
 		}
@@ -117,7 +117,7 @@ func Test_Write(t *testing.T) {
 
 	endTime := time.Now()
 	startTime := endTime.Add(time.Duration(10) * -time.Second)
-	archivePath := GetPath(startTime, endTime, "mlab2-abc0t.mlab-sandbox.measurement-lab.org")
+	archivePath := GetPath(startTime, endTime, "./", "mlab2-abc0t.mlab-sandbox.measurement-lab.org")
 	testArchivePath := fmt.Sprintf("%v/%v", dir, archivePath)
 
 	err = Write(testArchivePath, jsonData)
