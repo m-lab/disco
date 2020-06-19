@@ -36,14 +36,14 @@ func MustMarshalJSON(m Model) []byte {
 }
 
 // GetPath returns a relative filesystem path where an archive should be written.
-func GetPath(start time.Time, end time.Time, hostname string) string {
+func GetPath(start time.Time, end time.Time, dataDir string, hostname string) string {
 	// The directory path where the archive should be written.
 	dirs := fmt.Sprintf("%v/%v", end.Format("2006/01/02"), hostname)
 
 	startTimeStr := start.Format("2006-01-02T15:04:05")
 	endTimeStr := end.Format("2006-01-02T15:04:05")
 	archiveName := fmt.Sprintf("%v-to-%v-switch.jsonl", startTimeStr, endTimeStr)
-	archivePath := fmt.Sprintf("%v/%v", dirs, archiveName)
+	archivePath := fmt.Sprintf("%v/switch/%v/%v", dataDir, dirs, archiveName)
 
 	return archivePath
 }

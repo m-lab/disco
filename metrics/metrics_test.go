@@ -389,10 +389,10 @@ func Test_Write(t *testing.T) {
 
 	end := time.Now()
 	start := end.Add(time.Duration(10) * -time.Second)
-	archivePath := archive.GetPath(start, end, hostname)
+	archivePath := archive.GetPath(start, end, ".", hostname)
 	dirPath := path.Dir(archivePath)
 
-	m.Write(start, end)
+	m.Write(start, end, ".")
 	defer os.RemoveAll(strings.Split(archivePath, "/")[0])
 
 	a, err := ioutil.ReadDir(dirPath)

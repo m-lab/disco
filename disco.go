@@ -17,6 +17,7 @@ import (
 
 var (
 	fCommunity          = flag.String("community", "", "The SNMP community string for the switch.")
+	fDataDir            = flag.String("datadir", "/var/spool/disco", "Base directory where metrics files will be written.")
 	fHostname           = flag.String("hostname", "", "The FQDN of the node.")
 	fListenAddress      = flag.String("listen-address", ":8888", "Address to listen on for telemetry.")
 	fMetricsFile        = flag.String("metrics", "", "Path to YAML file defining metrics to scrape.")
@@ -87,7 +88,7 @@ func main() {
 		case <-writeTicker.C:
 			start := metrics.IntervalStart
 			metrics.IntervalStart = time.Now()
-			metrics.Write(start, time.Now())
+			metrics.Write(start, time.Now(), *fDataDir)
 		case <-collectTicker.C:
 			metrics.CollectStart = time.Now()
 			metrics.Collect(client, config)

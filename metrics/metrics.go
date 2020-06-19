@@ -191,7 +191,7 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 }
 
 // Write collects JSON data for all OIDs and then writes the result to an archive.
-func (metrics *Metrics) Write(start time.Time, end time.Time) {
+func (metrics *Metrics) Write(start time.Time, end time.Time, dataDir string) {
 	var jsonData []byte
 
 	// Set a lock to avoid a race between the collecting and writing of metrics.
@@ -208,7 +208,7 @@ func (metrics *Metrics) Write(start time.Time, end time.Time) {
 		metrics.oids[oid].interval.Samples = []archive.Sample{}
 	}
 
-	archivePath := archive.GetPath(start, end, metrics.hostname)
+	archivePath := archive.GetPath(start, end, dataDir, metrics.hostname)
 	err := archive.Write(archivePath, jsonData)
 	if err != nil {
 		rtx.Must(err, "Failed to write archive")
