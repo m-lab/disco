@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/m-lab/disco/config"
@@ -40,7 +41,7 @@ func main() {
 	goSNMP := &gosnmp.GoSNMP{
 		Target:    *fTarget,
 		Port:      uint16(161),
-		Community: *fCommunity,
+		Community: strings.TrimSpace(*fCommunity),
 		Version:   gosnmp.Version2c,
 		Timeout:   time.Duration(5) * time.Second,
 		Retries:   1,
