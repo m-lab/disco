@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/m-lab/disco/config"
@@ -19,11 +20,9 @@ var (
 	fCommunity          = flag.String("community", "", "The SNMP community string for the switch.")
 	fDataDir            = flag.String("datadir", "/var/spool/disco", "Base directory where metrics files will be written.")
 	fHostname           = flag.String("hostname", "", "The FQDN of the node.")
-	fListenAddress      = flag.String("listen-address", ":8888", "Address to listen on for telemetry.")
 	fMetricsFile        = flag.String("metrics", "", "Path to YAML file defining metrics to scrape.")
 	fWriteInterval      = flag.Duration("write-interval", 300*time.Second, "Interval to write out JSON files e.g, 300s, 10m.")
 	fTarget             = flag.String("target", "", "Switch FQDN to scrape metrics from.")
-	logFatal            = log.Fatal
 	mainCtx, mainCancel = context.WithCancel(context.Background())
 )
 
@@ -42,7 +41,7 @@ func main() {
 	goSNMP := &gosnmp.GoSNMP{
 		Target:    *fTarget,
 		Port:      uint16(161),
-		Community: *fCommunity,
+		Community: strings.TrimSpace(*fCommunity),
 		Version:   gosnmp.Version2c,
 		Timeout:   time.Duration(5) * time.Second,
 		Retries:   1,

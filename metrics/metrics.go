@@ -85,6 +85,22 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 		}
 	}
 
+	// Fail if any machine information was not found.
+	if ifaces["machine"]["iface"] == "" {
+		log.Fatalf("Failed to find logical iface number for machine: %v", machine)
+	}
+	if ifaces["machine"]["ifDescr"] == "" {
+		log.Fatalf("Failed to find ifDescr for machine logical iface: %v", ifaces["machine"]["iface"])
+	}
+
+	// Fail if any uplink information was not found.
+	if ifaces["uplink"]["iface"] == "" {
+		log.Fatal("Failed to find logical iface number for uplink")
+	}
+	if ifaces["uplink"]["ifDescr"] == "" {
+		log.Fatalf("Failed to find ifDescr for uplink logical iface: %v", ifaces["uplink"]["iface"])
+	}
+
 	return ifaces
 }
 
