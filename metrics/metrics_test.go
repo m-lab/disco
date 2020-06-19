@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -389,11 +388,11 @@ func Test_Write(t *testing.T) {
 
 	end := time.Now()
 	start := end.Add(time.Duration(10) * -time.Second)
-	archivePath := archive.GetPath(start, end, ".", hostname)
+	archivePath := archive.GetPath(start, end, "/tmp/disco", hostname)
 	dirPath := path.Dir(archivePath)
 
-	m.Write(start, end, ".")
-	defer os.RemoveAll(strings.Split(archivePath, "/")[0])
+	m.Write(start, end, "/tmp/disco")
+	defer os.RemoveAll("/tmp/disco")
 
 	a, err := ioutil.ReadDir(dirPath)
 	rtx.Must(err, "Could not read test archive directory")
