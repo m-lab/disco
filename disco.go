@@ -107,6 +107,7 @@ func main() {
 		case <-sigterm:
 			start := metrics.IntervalStart
 			metrics.Write(start, time.Now(), *fDataDir)
+			mainCancel()
 			return
 		}
 	}
