@@ -5,7 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/m-lab/disco/config"
@@ -85,6 +88,9 @@ func main() {
 	// immediately after the ticker is created.
 	metrics.Collect(client, config)
 
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGTERM)
+
 	for {
 		select {
 		case <-mainCtx.Done():
@@ -98,6 +104,11 @@ func main() {
 		case <-collectTicker.C:
 			metrics.CollectStart = time.Now()
 			metrics.Collect(client, config)
+		case <-sigterm:
+			start := metrics.IntervalStart
+			metrics.IntervalStart = time.Now()
+			metrics.Write(start, time.Now(), *fDataDir)
+			mainCancel()
 		}
 	}
 }
