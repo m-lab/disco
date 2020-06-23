@@ -80,9 +80,11 @@ func main() {
 	}
 
 	writeTicker := time.NewTicker(*fWriteInterval)
+	defer writeTicker.Stop()
 	metrics.IntervalStart = time.Now()
 
 	collectTicker := time.NewTicker(10 * time.Second)
+	defer collectTicker.Stop()
 	// Tickers wait for the configured duration before their first tick. We want
 	// Collect() to run immedately, so manually kick off Collect() once
 	// immediately after the ticker is created.
@@ -94,8 +96,6 @@ func main() {
 	for {
 		select {
 		case <-mainCtx.Done():
-			collectTicker.Stop()
-			writeTicker.Stop()
 			return
 		case <-writeTicker.C:
 			start := metrics.IntervalStart
@@ -106,9 +106,8 @@ func main() {
 			metrics.Collect(client, config)
 		case <-sigterm:
 			start := metrics.IntervalStart
-			metrics.IntervalStart = time.Now()
 			metrics.Write(start, time.Now(), *fDataDir)
-			mainCancel()
+			return
 		}
 	}
 }
