@@ -5,7 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/m-lab/disco/config"
@@ -77,19 +80,22 @@ func main() {
 	}
 
 	writeTicker := time.NewTicker(*fWriteInterval)
+	defer writeTicker.Stop()
 	metrics.IntervalStart = time.Now()
 
 	collectTicker := time.NewTicker(10 * time.Second)
+	defer collectTicker.Stop()
 	// Tickers wait for the configured duration before their first tick. We want
 	// Collect() to run immedately, so manually kick off Collect() once
 	// immediately after the ticker is created.
 	metrics.Collect(client, config)
 
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGTERM)
+
 	for {
 		select {
 		case <-mainCtx.Done():
-			collectTicker.Stop()
-			writeTicker.Stop()
 			return
 		case <-writeTicker.C:
 			start := metrics.IntervalStart
@@ -98,6 +104,11 @@ func main() {
 		case <-collectTicker.C:
 			metrics.CollectStart = time.Now()
 			metrics.Collect(client, config)
+		case <-sigterm:
+			start := metrics.IntervalStart
+			metrics.Write(start, time.Now(), *fDataDir)
+			mainCancel()
+			return
 		}
 	}
 }
