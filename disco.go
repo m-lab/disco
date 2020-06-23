@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -36,6 +37,12 @@ func main() {
 
 	if len(*fHostname) <= 0 {
 		log.Fatal("Node's FQDN must be passed as an arg or env variable.")
+	}
+
+	// If the -target flag is empty, then attempt to construct it using the hostname.
+	if len(*fTarget) <= 0 {
+		h := *fHostname
+		*fTarget = fmt.Sprintf("s1-%s.measurement-lab.org", h[6:11])
 	}
 
 	goSNMP := &gosnmp.GoSNMP{
