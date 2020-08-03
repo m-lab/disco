@@ -100,13 +100,13 @@ func main() {
 		case <-writeTicker.C:
 			start := metrics.IntervalStart
 			metrics.IntervalStart = time.Now()
-			metrics.Write(start, time.Now(), *fDataDir)
+			metrics.Write(start, *fDataDir)
 		case <-collectTicker.C:
 			metrics.CollectStart = time.Now()
 			metrics.Collect(client, config)
 		case <-sigterm:
 			start := metrics.IntervalStart
-			metrics.Write(start, time.Now(), *fDataDir)
+			metrics.Write(start, *fDataDir)
 			mainCancel()
 			return
 		}
