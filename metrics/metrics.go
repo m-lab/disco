@@ -207,8 +207,9 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 }
 
 // Write collects JSON data for all OIDs and then writes the result to an archive.
-func (metrics *Metrics) Write(start time.Time, end time.Time, dataDir string) {
+func (metrics *Metrics) Write(start time.Time, dataDir string) {
 	var jsonData []byte
+	var endTimeUnix int64
 
 	// Set a lock to avoid a race between the collecting and writing of metrics.
 	metrics.mutex.Lock()
@@ -219,11 +220,20 @@ func (metrics *Metrics) Write(start time.Time, end time.Time, dataDir string) {
 		jsonData = append(jsonData, data...)
 		// Adds a newline to the end of the JSON data to effectively create JSONL.
 		jsonData = append(jsonData, '\n')
+		// Capture the value of the final Unix timestamp of each sample set. We
+		// will use this value to calculate the text of the end time for the
+		// file being written. There is an inefficiency here. This variable will
+		// get written on every loop iteration, but we will actually only use
+		// the last value assigned to it. The final timestamp for every metric
+		// should be the same. This seemed better than any alternative trying to
+		// determine the last element in the range and only assigning once.
+		endTimeUnix = metrics.oids[oid].interval.Samples[len(metrics.oids[oid].interval.Samples)-1].Timestamp
 		// Reset the samples to an empty slice of archive.Sample for the next
 		// interval.
 		metrics.oids[oid].interval.Samples = []archive.Sample{}
 	}
 
+	end := time.Unix(endTimeUnix, 0)
 	archivePath := archive.GetPath(start, end, dataDir, metrics.hostname)
 	err := archive.Write(archivePath, jsonData)
 	if err != nil {

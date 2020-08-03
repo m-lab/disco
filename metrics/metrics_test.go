@@ -378,6 +378,7 @@ func Test_Write(t *testing.T) {
 		run: 1,
 	}
 	m := New(s1, c, target, hostname)
+	m.CollectStart = time.Now()
 	m.Collect(s1, c)
 
 	s2 := &mockSwitchClient{
@@ -391,7 +392,7 @@ func Test_Write(t *testing.T) {
 	archivePath := archive.GetPath(start, end, "/tmp/disco", hostname)
 	dirPath := path.Dir(archivePath)
 
-	m.Write(start, end, "/tmp/disco")
+	m.Write(start, "/tmp/disco")
 	defer os.RemoveAll("/tmp/disco")
 
 	a, err := ioutil.ReadDir(dirPath)
