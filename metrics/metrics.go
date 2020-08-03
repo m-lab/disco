@@ -190,6 +190,11 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 		metrics.oids[oid].interval.Samples = append(
 			metrics.oids[oid].interval.Samples,
 			archive.Sample{
+				// NOTE: The value of CollectStart is assigned to every metric
+				// in a given collection, and this fact is taken advantage of in
+				// metrics.Write(). If we start assigning possibly unique
+				// timestamps to each sample metric, then the code in Write()
+				// will need to be modified.
 				Timestamp:    metrics.CollectStart.Unix(),
 				CollectStart: collectStart.UnixNano(),
 				CollectEnd:   collectEnd.UnixNano(),
