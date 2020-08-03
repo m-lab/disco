@@ -227,6 +227,11 @@ func (metrics *Metrics) Write(start time.Time, dataDir string) {
 		// the last value assigned to it. The final timestamp for every metric
 		// should be the same. This seemed better than any alternative trying to
 		// determine the last element in the range and only assigning once.
+		//
+		// NOTE: This usage is selecting the final timestamp of an arbitrary map
+		// element, which works because every timestamp for a given collection
+		// is necessarily the same. But please note that if this changes in the
+		// future that this method will no longer be reliable.
 		endTimeUnix = metrics.oids[oid].interval.Samples[len(metrics.oids[oid].interval.Samples)-1].Timestamp
 		// Reset the samples to an empty slice of archive.Sample for the next
 		// interval.
