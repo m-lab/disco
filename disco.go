@@ -102,6 +102,10 @@ func main() {
 			metrics.IntervalStart = time.Now()
 			metrics.Write(start, *fDataDir)
 		case <-collectTicker.C:
+			// NOTE: The value of CollectStart is used as the sample Timestamp
+			// for all metrics from a given collection. The current code relies
+			// this timestamp always being the same, if this changes, then the
+			// code in metrics.Collect() will need to be modified.
 			metrics.CollectStart = time.Now()
 			metrics.Collect(client, config)
 		case <-sigterm:
