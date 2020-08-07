@@ -81,7 +81,6 @@ func main() {
 
 	writeTicker := time.NewTicker(*fWriteInterval)
 	defer writeTicker.Stop()
-	metrics.IntervalStart = time.Now()
 
 	collectTicker := time.NewTicker(10 * time.Second)
 	defer collectTicker.Stop()
