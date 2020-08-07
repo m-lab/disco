@@ -81,7 +81,6 @@ func main() {
 
 	writeTicker := time.NewTicker(*fWriteInterval)
 	defer writeTicker.Stop()
-	metrics.IntervalStart = time.Now()
 
 	collectTicker := time.NewTicker(10 * time.Second)
 	defer collectTicker.Stop()
@@ -98,9 +97,7 @@ func main() {
 		case <-mainCtx.Done():
 			return
 		case <-writeTicker.C:
-			start := metrics.IntervalStart
-			metrics.IntervalStart = time.Now()
-			metrics.Write(start, *fDataDir)
+			metrics.Write(*fDataDir)
 		case <-collectTicker.C:
 			// NOTE: The value of CollectStart is used as the sample Timestamp
 			// for all metrics from a given collection. The current code relies
@@ -109,8 +106,7 @@ func main() {
 			metrics.CollectStart = time.Now()
 			metrics.Collect(client, config)
 		case <-sigterm:
-			start := metrics.IntervalStart
-			metrics.Write(start, *fDataDir)
+			metrics.Write(*fDataDir)
 			mainCancel()
 			return
 		}

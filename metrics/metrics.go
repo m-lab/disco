@@ -28,14 +28,13 @@ var (
 // Metrics represents a collection of oids, plus additional data about the environment.
 type Metrics struct {
 	// TODO(kinkade): remove this field in favor of a more elegant solution.
-	firstRun      bool
-	hostname      string
-	oids          map[string]*oid
-	machine       string
-	mutex         sync.Mutex
-	prom          map[string]*prometheus.CounterVec
-	CollectStart  time.Time
-	IntervalStart time.Time
+	firstRun     bool
+	hostname     string
+	oids         map[string]*oid
+	machine      string
+	mutex        sync.Mutex
+	prom         map[string]*prometheus.CounterVec
+	CollectStart time.Time
 }
 
 type oid struct {
@@ -211,9 +210,9 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 }
 
 // Write collects JSON data for all OIDs and then writes the result to an archive.
-func (metrics *Metrics) Write(start time.Time, dataDir string) {
+func (metrics *Metrics) Write(dataDir string) {
 	var jsonData []byte
-	var endTimeUnix int64
+	var endTimeUnix, startTimeUnix int64
 
 	// Set a lock to avoid a race between the collecting and writing of metrics.
 	metrics.mutex.Lock()
@@ -224,31 +223,34 @@ func (metrics *Metrics) Write(start time.Time, dataDir string) {
 		jsonData = append(jsonData, data...)
 		// Adds a newline to the end of the JSON data to effectively create JSONL.
 		jsonData = append(jsonData, '\n')
-		// Capture the value of the final Unix timestamp of each sample set. We
-		// will use this value to calculate the text of the end time for the
-		// file being written. There is an inefficiency here. This variable will
-		// get written on every loop iteration, but we will actually only use
-		// the last value assigned to it. The final timestamp for every metric
-		// should be the same. This seemed better than any alternative trying to
-		// determine the last element in the range and only assigning once.
+		// Capture the value of the frist and final Unix timestamp of each
+		// sample set. We will use these values to calculate the text of the
+		// start and end time for the file being written. There is an
+		// inefficiency here. The variables will get written on every loop
+		// iteration, but we will actually only use the last values assigned to
+		// them. The timestamps for every metric should be the same. This seemed
+		// better than any alternative trying to determine the last element in
+		// the range and only assigning once.
 		//
-		// NOTE: This usage is selecting the final timestamp of an arbitrary map
-		// element, which works because every timestamp for a given collection
-		// is necessarily the same. But please note that if this changes in the
-		// future that this method will no longer be reliable.
+		// NOTE: This usage is selecting the first and last timestamp of an
+		// arbitrary map element, which works because every timestamp for a
+		// given collection is necessarily the same. But please note that if
+		// this changes in the future that this method will no longer be
+		// reliable.
+		startTimeUnix = metrics.oids[oid].interval.Samples[0].Timestamp
 		endTimeUnix = metrics.oids[oid].interval.Samples[len(metrics.oids[oid].interval.Samples)-1].Timestamp
 		// Reset the samples to an empty slice of archive.Sample for the next
 		// interval.
 		metrics.oids[oid].interval.Samples = []archive.Sample{}
 	}
 
+	start := time.Unix(startTimeUnix, 0)
 	end := time.Unix(endTimeUnix, 0)
 	archivePath := archive.GetPath(start, end, dataDir, metrics.hostname)
 	err := archive.Write(archivePath, jsonData)
 	if err != nil {
 		rtx.Must(err, "Failed to write archive")
 	}
-	metrics.IntervalStart = time.Now()
 }
 
 // New creates a new metrics.Metrics struct with various OID maps initialized.
