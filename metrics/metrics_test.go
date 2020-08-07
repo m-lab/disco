@@ -392,7 +392,7 @@ func Test_Write(t *testing.T) {
 	archivePath := archive.GetPath(start, end, "/tmp/disco", hostname)
 	dirPath := path.Dir(archivePath)
 
-	m.Write(start, "/tmp/disco")
+	m.Write("/tmp/disco")
 	defer os.RemoveAll("/tmp/disco")
 
 	a, err := ioutil.ReadDir(dirPath)
