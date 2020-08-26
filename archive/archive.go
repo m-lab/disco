@@ -18,6 +18,7 @@ type Sample struct {
 	CollectStart int64  `json:"collectstart"`
 	CollectEnd   int64  `json:"collectend"`
 	Value        uint64 `json:"value"`
+	Counter      uint64 `json:"counter"`
 }
 
 // Model represents the structure of metric for DISCO.

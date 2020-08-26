@@ -196,7 +196,8 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 				Timestamp:    metrics.CollectStart.Unix(),
 				CollectStart: collectStart.UnixNano(),
 				CollectEnd:   collectEnd.UnixNano(),
-				Value:        increase},
+				Value:        increase,
+				Counter:      value},
 		)
 
 		metrics.oids[oid].previousValue = value
