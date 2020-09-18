@@ -41,6 +41,7 @@ type oid struct {
 	name          string
 	previousValue uint64
 	scope         string
+	ifAlias       string
 	ifDescr       string
 	interval      archive.Model
 }
@@ -54,10 +55,12 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 	ifaces := map[string]map[string]string{
 		"machine": map[string]string{
 			"iface":   "",
+			"ifAlias": "",
 			"ifDescr": "",
 		},
 		"uplink": map[string]string{
 			"iface":   "",
+			"ifAlias": "",
 			"ifDescr": "",
 		},
 	}
@@ -71,6 +74,7 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 			ifDescrOid := createOID(ifDescrOidStub, iface)
 			oidMap, err := getOidsString(client, []string{ifDescrOid})
 			rtx.Must(err, "Failed to determine the machine interface ifDescr")
+			ifaces["machine"]["ifAlias"] = machine
 			ifaces["machine"]["ifDescr"] = oidMap[ifDescrOid]
 			ifaces["machine"]["iface"] = iface
 		}
@@ -78,6 +82,7 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 			ifDescrOid := createOID(ifDescrOidStub, iface)
 			oidMap, err := getOidsString(client, []string{ifDescrOid})
 			rtx.Must(err, "Failed to determine the uplink interface ifDescr")
+			ifaces["uplink"]["ifAlias"] = "uplink"
 			ifaces["uplink"]["ifDescr"] = oidMap[ifDescrOid]
 			ifaces["uplink"]["iface"] = iface
 		}
@@ -181,9 +186,10 @@ func (metrics *Metrics) Collect(client snmp.Client, config config.Config) error 
 		}
 
 		increase := value - metrics.oids[oid].previousValue
+		ifAlias := metrics.oids[oid].ifAlias
 		ifDescr := metrics.oids[oid].ifDescr
 		metricName := metrics.oids[oid].name
-		metrics.prom[metricName].WithLabelValues(ifDescr).Add(float64(increase))
+		metrics.prom[metricName].WithLabelValues(ifAlias, ifDescr).Add(float64(increase))
 
 		metrics.oids[oid].interval.Samples = append(
 			metrics.oids[oid].interval.Samples,
@@ -294,6 +300,7 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 			o := &oid{
 				name:    metric.Name,
 				scope:   scope,
+				ifAlias: values["ifAlias"],
 				ifDescr: values["ifDescr"],
 				interval: archive.Model{
 					Experiment: target,
@@ -310,6 +317,7 @@ func New(client snmp.Client, config config.Config, target string, hostname strin
 				Help: metric.Description,
 			},
 			[]string{
+				"ifAlias",
 				"interface",
 			},
 		)
