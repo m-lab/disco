@@ -200,6 +200,7 @@ func Test_New(t *testing.T) {
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "machine",
+			ifAlias:       "mlab2",
 			ifDescr:       "xe-0/0/12",
 			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
@@ -212,6 +213,7 @@ func Test_New(t *testing.T) {
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "uplink",
+			ifAlias:       "uplink",
 			ifDescr:       "xe-0/0/45",
 			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
@@ -224,6 +226,7 @@ func Test_New(t *testing.T) {
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "machine",
+			ifAlias:       "mlab2",
 			ifDescr:       "xe-0/0/12",
 			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
@@ -236,6 +239,7 @@ func Test_New(t *testing.T) {
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "uplink",
+			ifAlias:       "uplink",
 			ifDescr:       "xe-0/0/45",
 			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
