@@ -213,7 +213,7 @@ func Test_New(t *testing.T) {
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "uplink",
-			ifAlias:       "uplink",
+			ifAlias:       "uplink-10g",
 			ifDescr:       "xe-0/0/45",
 			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
@@ -239,7 +239,7 @@ func Test_New(t *testing.T) {
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "uplink",
-			ifAlias:       "uplink",
+			ifAlias:       "uplink-10g",
 			ifDescr:       "xe-0/0/45",
 			interval: archive.Model{
 				Experiment: "s1-abc0t.measurement-lab.org",
