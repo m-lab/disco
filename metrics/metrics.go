@@ -74,7 +74,7 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 			ifDescrOid := createOID(ifDescrOidStub, iface)
 			oidMap, err := getOidsString(client, []string{ifDescrOid})
 			rtx.Must(err, "Failed to determine the machine interface ifDescr")
-			ifaces["machine"]["ifAlias"] = machine
+			ifaces["machine"]["ifAlias"] = val
 			ifaces["machine"]["ifDescr"] = oidMap[ifDescrOid]
 			ifaces["machine"]["iface"] = iface
 		}
@@ -82,7 +82,7 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 			ifDescrOid := createOID(ifDescrOidStub, iface)
 			oidMap, err := getOidsString(client, []string{ifDescrOid})
 			rtx.Must(err, "Failed to determine the uplink interface ifDescr")
-			ifaces["uplink"]["ifAlias"] = "uplink"
+			ifaces["uplink"]["ifAlias"] = val
 			ifaces["uplink"]["ifDescr"] = oidMap[ifDescrOid]
 			ifaces["uplink"]["iface"] = iface
 		}
