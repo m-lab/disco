@@ -17,7 +17,7 @@ import (
 	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 var (

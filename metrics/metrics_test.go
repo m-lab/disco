@@ -13,7 +13,7 @@ import (
 	"github.com/m-lab/disco/config"
 	"github.com/m-lab/go/rtx"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 const (
