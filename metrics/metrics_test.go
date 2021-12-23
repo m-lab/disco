@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gosnmp/gosnmp"
 	"github.com/m-lab/disco/archive"
 	"github.com/m-lab/disco/config"
 	"github.com/m-lab/go/rtx"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/gosnmp/gosnmp"
 )
 
 const (
@@ -405,5 +405,5 @@ func Test_Write(t *testing.T) {
 	if len(a) != 1 {
 		t.Errorf("Expected one archive file, but got: %v", len(a))
 	}
-	os.RemoveAll(string(time.Now().Year()))
+	os.RemoveAll(string(rune(time.Now().Year())))
 }
