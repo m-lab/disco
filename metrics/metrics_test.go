@@ -405,5 +405,5 @@ func Test_Write(t *testing.T) {
 	if len(a) != 1 {
 		t.Errorf("Expected one archive file, but got: %v", len(a))
 	}
-	os.RemoveAll(string(rune(time.Now().Year())))
+	os.RemoveAll(fmt.Sprintf("%04d", time.Now().Year()))
 }
