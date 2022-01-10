@@ -28,3 +28,11 @@ metrics it has collected. This makes DISCOv2 something like the
 [snmp_exporter](https://github.com/prometheus/snmp_exporter), but far less
 general purpose.
 
+# Configuration
+
+The file metrics.yaml.sample is, as the name implies, nothing more than a sample
+of how the configuration file should be formatted. The [actual configuration
+file for
+DISCOv2](https://github.com/m-lab/k8s-support/blob/master/config/disco/metrics.yaml)
+(as it runs in the M-Lab kubernetes platform cluster) can be found in the
+k8s-support repository.
