@@ -53,12 +53,12 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 	rtx.Must(err, "Failed to walk the ifAlias OID")
 
 	ifaces := map[string]map[string]string{
-		"machine": map[string]string{
+		"machine": {
 			"iface":   "",
 			"ifAlias": "",
 			"ifDescr": "",
 		},
-		"uplink": map[string]string{
+		"uplink": {
 			"iface":   "",
 			"ifAlias": "",
 			"ifDescr": "",
@@ -137,7 +137,7 @@ func getOidsInt64(client snmp.Client, oids []string) (map[string]uint64, error) 
 		case uint64:
 			oidMap[pdu.Name] = value
 		default:
-			err = fmt.Errorf("Unknown type %T of SNMP type %v for OID %v", value, pdu.Type, pdu.Name)
+			err = fmt.Errorf("unknown type %T of SNMP type %v for OID %v", value, pdu.Type, pdu.Name)
 			return nil, err
 		}
 	}

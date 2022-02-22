@@ -34,14 +34,14 @@ var machine = "mlab2"
 
 var c = config.Config{
 	Metrics: []config.Metric{
-		config.Metric{
+		{
 			Name:            "ifHCInOctets",
 			Description:     "Ingress octets.",
 			OidStub:         ifHCInOctetsOidStub,
 			MlabUplinkName:  "switch.octets.uplink.rx",
 			MlabMachineName: "switch.octets.local.rx",
 		},
-		config.Metric{
+		{
 			Name:            "ifOutDiscards",
 			Description:     "Egress discards.",
 			OidStub:         ifOutDiscardsOidStub,
@@ -196,7 +196,7 @@ func Test_New(t *testing.T) {
 	m := New(s, c, target, hostname)
 
 	var expectedMetricsOIDs = map[string]*oid{
-		ifOutDiscardsMachineOID: &oid{
+		ifOutDiscardsMachineOID: {
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "machine",
@@ -209,7 +209,7 @@ func Test_New(t *testing.T) {
 				Samples:    []archive.Sample{},
 			},
 		},
-		ifOutDiscardsUplinkOID: &oid{
+		ifOutDiscardsUplinkOID: {
 			name:          "ifOutDiscards",
 			previousValue: 0,
 			scope:         "uplink",
@@ -222,7 +222,7 @@ func Test_New(t *testing.T) {
 				Samples:    []archive.Sample{},
 			},
 		},
-		ifHCInOctetsMachineOID: &oid{
+		ifHCInOctetsMachineOID: {
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "machine",
@@ -235,7 +235,7 @@ func Test_New(t *testing.T) {
 				Samples:    []archive.Sample{},
 			},
 		},
-		ifHCInOctetsUplinkOID: &oid{
+		ifHCInOctetsUplinkOID: {
 			name:          "ifHCInOctets",
 			previousValue: 0,
 			scope:         "uplink",
@@ -272,22 +272,22 @@ func Test_Collect(t *testing.T) {
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 
 	var expectedValues = map[string]map[string]uint64{
-		ifOutDiscardsMachineOID: map[string]uint64{
+		ifOutDiscardsMachineOID: {
 			"run1Prev":   0,
 			"run2Prev":   0,
 			"run2Sample": 0,
 		},
-		ifOutDiscardsUplinkOID: map[string]uint64{
+		ifOutDiscardsUplinkOID: {
 			"run1Prev":   3,
 			"run2Prev":   8,
 			"run2Sample": 5,
 		},
-		ifHCInOctetsMachineOID: map[string]uint64{
+		ifHCInOctetsMachineOID: {
 			"run1Prev":   275,
 			"run2Prev":   511,
 			"run2Sample": 236,
 		},
-		ifHCInOctetsUplinkOID: map[string]uint64{
+		ifHCInOctetsUplinkOID: {
 			"run1Prev":   437,
 			"run2Prev":   624,
 			"run2Sample": 187,
