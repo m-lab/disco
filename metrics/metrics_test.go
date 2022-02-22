@@ -56,7 +56,7 @@ var snmpPacketMachine = gosnmp.SnmpPacket{
 		{
 			Name:  ifDescrMachineOID,
 			Type:  gosnmp.OctetString,
-			Value: "xe-0/0/12",
+			Value: []byte("xe-0/0/12"),
 		},
 	},
 }
@@ -66,7 +66,7 @@ var snmpPacketUplink = gosnmp.SnmpPacket{
 		{
 			Name:  ifDescrUplinkOID,
 			Type:  gosnmp.OctetString,
-			Value: "xe-0/0/45",
+			Value: []byte("xe-0/0/45"),
 		},
 	},
 }
@@ -141,12 +141,12 @@ func (m *mockSwitchClient) BulkWalkAll(rootOid string) (results []gosnmp.SnmpPDU
 		{
 			Name:  ifDescrMachineOID,
 			Type:  gosnmp.OctetString,
-			Value: "mlab2",
+			Value: []byte("mlab2"),
 		},
 		{
 			Name:  ifDescrUplinkOID,
 			Type:  gosnmp.OctetString,
-			Value: "uplink-10g",
+			Value: []byte("uplink-10g"),
 		},
 	}, nil
 }

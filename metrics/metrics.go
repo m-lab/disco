@@ -69,7 +69,7 @@ func mustGetIfaces(client snmp.Client, machine string) map[string]map[string]str
 		oidParts := strings.Split(pdu.Name, ".")
 		iface := oidParts[len(oidParts)-1]
 
-		val := strings.TrimSpace(pdu.Value.(string))
+		val := strings.TrimSpace(string(pdu.Value.([]byte)))
 		if val == machine {
 			ifDescrOid := createOID(ifDescrOidStub, iface)
 			oidMap, err := getOidsString(client, []string{ifDescrOid})
@@ -113,7 +113,7 @@ func getOidsString(client snmp.Client, oids []string) (map[string]string, error)
 	oidMap := make(map[string]string)
 	result, err := client.Get(oids)
 	for _, pdu := range result.Variables {
-		oidMap[pdu.Name] = pdu.Value.(string)
+		oidMap[pdu.Name] = string(pdu.Value.([]byte))
 	}
 	return oidMap, err
 }
