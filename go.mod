@@ -1,6 +1,6 @@
 module github.com/m-lab/disco
 
-go 1.18
+go 1.20
 
 require (
 	github.com/gosnmp/gosnmp v1.34.0

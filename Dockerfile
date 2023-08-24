@@ -1,4 +1,4 @@
-FROM golang:1.18 as disco-build
+FROM golang:1.20 as disco-build
 ADD . /go/src/github.com/m-lab/disco
 RUN cd /go/src/github.com/m-lab/disco && ./build.sh
 
